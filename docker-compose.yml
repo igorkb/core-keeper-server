@@ -1,0 +1,21 @@
+services:
+  core-keeper:
+    image: escaping/core-keeper-dedicated:latest
+    container_name: core-keeper-dedicated
+    restart: unless-stopped
+    stop_grace_period: 2m
+    volumes:
+      - ./data/server-files:/home/steam/core-keeper-dedicated
+      - ./data/world-data:/home/steam/core-keeper-data
+    env_file:
+      - path: .env
+        required: false
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+networks:
+  default:
+    name: core-keeper-network
