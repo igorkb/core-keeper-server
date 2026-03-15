@@ -3,12 +3,21 @@
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-COMPOSE_FILE="$(dirname "$SCRIPT_DIR")/docker-compose.yml"
-DATA_DIR="$(dirname "$SCRIPT_DIR")/data"
+source "$SCRIPT_DIR/lib/common.sh"
 
 LINES=50
 FOLLOW=false
 DOCKER_LOGS=false
+
+print_usage() {
+    echo "Usage: ./server.sh logs [--docker] [-f|--follow] [--lines N|N]"
+}
+
+require_positive_integer() {
+    local value="$1"
+
+    [[ "$value" =~ ^[0-9]+$ ]] && [ "$value" -gt 0 ]
+}
 
 while [[ $# -gt 0 ]]; do
     case "$1" in
@@ -19,41 +28,47 @@ while [[ $# -gt 0 ]]; do
             DOCKER_LOGS=true
             ;;
         --lines)
+            if [ $# -lt 2 ]; then
+                print_error "Error: --lines requires a positive integer argument."
+                print_usage
+                exit 1
+            fi
+            if ! require_positive_integer "$2"; then
+                print_error "Error: line count must be a positive integer."
+                exit 1
+            fi
             LINES="$2"
             shift
             ;;
         *)
+            if ! require_positive_integer "$1"; then
+                print_error "Error: unsupported logs argument '$1'."
+                print_usage
+                exit 1
+            fi
             LINES="$1"
             ;;
     esac
     shift
 done
 
-cd "$(dirname "$SCRIPT_DIR")"
-
 if [ "$DOCKER_LOGS" = "true" ]; then
     if [ "$FOLLOW" = "true" ]; then
-        docker compose -f "$COMPOSE_FILE" logs -f
+        run_compose logs -f
     else
-        docker compose -f "$COMPOSE_FILE" logs --tail="$LINES"
+        run_compose logs --tail="$LINES"
     fi
 else
-    LOG_DIR="$DATA_DIR/server-files/logs"
+    LOG_FILE="$(latest_game_log)"
     
-    if [ -d "$LOG_DIR" ] && [ "$(ls -A "$LOG_DIR" 2>/dev/null)" ]; then
-        LOG_FILE=$(ls -t "$LOG_DIR"/*.log 2>/dev/null | head -1)
-        
-        if [ -n "$LOG_FILE" ]; then
-            if [ "$FOLLOW" = "true" ]; then
-                tail -f "$LOG_FILE"
-            else
-                tail -n "$LINES" "$LOG_FILE"
-            fi
+    if [ -n "$LOG_FILE" ]; then
+        if [ "$FOLLOW" = "true" ]; then
+            tail -f "$LOG_FILE"
         else
-            echo "No log files found in $LOG_DIR"
+            tail -n "$LINES" "$LOG_FILE"
         fi
     else
-        echo "Game logs directory not found: $LOG_DIR"
+        echo "Game logs directory not found: $GAME_LOG_DIR"
         echo "Server may not have started yet. Try: ./server.sh logs --docker"
     fi
 fi

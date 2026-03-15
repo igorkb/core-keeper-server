@@ -3,19 +3,12 @@
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-COMPOSE_FILE="$(dirname "$SCRIPT_DIR")/docker-compose.yml"
 BACKUP_SCRIPT="$SCRIPT_DIR/backup.sh"
-
-RED='\033[0;31m'
-GREEN='\033[0;32m'
-YELLOW='\033[1;33m'
-NC='\033[0m'
+source "$SCRIPT_DIR/lib/common.sh"
 
 BACKUP="${BACKUP:-true}"
 
 echo "Stopping Core Keeper server..."
-
-cd "$(dirname "$SCRIPT_DIR")"
 
 if [ "$BACKUP" = "true" ]; then
     echo ""
@@ -26,6 +19,6 @@ if [ "$BACKUP" = "true" ]; then
     fi
 fi
 
-docker compose -f "$COMPOSE_FILE" down
+run_compose down
 
-echo -e "${GREEN}Server stopped.${NC}"
+print_success "Server stopped."

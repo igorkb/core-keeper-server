@@ -1,0 +1,4 @@
+services:
+  core-keeper:
+    ports:
+      - "${SERVER_PORT:?Set SERVER_PORT in .env to enable direct-connect mode}:${SERVER_PORT:?Set SERVER_PORT in .env to enable direct-connect mode}/udp"
