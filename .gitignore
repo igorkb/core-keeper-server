@@ -1,0 +1,16 @@
+# Local runtime configuration
+/.env
+/.deploy.conf
+/scripts/.deploy.conf
+
+# Compose interpolation helper committed with the repo
+!/.compose.env
+
+# Runtime state and generated data
+/backups/
+/logs/
+/data/server-files/
+/data/world-data/
+
+# Miscellaneous local output
+*.log

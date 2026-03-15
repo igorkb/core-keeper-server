@@ -3,14 +3,10 @@
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-COMPOSE_FILE="$(dirname "$SCRIPT_DIR")/docker-compose.yml"
-
-GREEN='\033[0;32m'
-NC='\033[0m'
+source "$SCRIPT_DIR/lib/common.sh"
 
 echo "Restarting Core Keeper server..."
 
-cd "$(dirname "$SCRIPT_DIR")"
-docker compose -f "$COMPOSE_FILE" restart
+run_compose restart
 
-echo -e "${GREEN}Server restarted!${NC}"
+print_success "Server restarted!"

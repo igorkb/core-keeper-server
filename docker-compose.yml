@@ -1,6 +1,6 @@
 services:
   core-keeper:
-    image: escaping/core-keeper-dedicated:latest
+    image: escaping/core-keeper-dedicated:v2.8.1
     container_name: core-keeper-dedicated
     restart: unless-stopped
     stop_grace_period: 2m
@@ -10,6 +10,13 @@ services:
     env_file:
       - path: .env
         required: false
+        format: raw
+    healthcheck:
+      test: ["CMD-SHELL", "test -s /home/steam/core-keeper-dedicated/GameID.txt"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
     logging:
       driver: json-file
       options:

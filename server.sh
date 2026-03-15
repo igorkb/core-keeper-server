@@ -3,26 +3,12 @@
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-COMPOSE_FILE="$SCRIPT_DIR/docker-compose.yml"
 ENV_FILE="$SCRIPT_DIR/.env"
-SCRIPTS_DIR="$SCRIPT_DIR/scripts"
-BACKUPS_DIR="$SCRIPT_DIR/backups"
-DATA_DIR="$SCRIPT_DIR/data"
 
-RED='\033[0;31m'
-GREEN='\033[0;32m'
-YELLOW='\033[1;33m'
-BLUE='\033[0;34m'
-NC='\033[0m'
-
-print_header() {
-    echo -e "${BLUE}========================================${NC}"
-    echo -e "${BLUE}     Core Keeper Server Manager${NC}"
-    echo -e "${BLUE}========================================${NC}"
-}
+source "$SCRIPT_DIR/scripts/lib/common.sh"
 
 get_status() {
-    if docker compose -f "$COMPOSE_FILE" ps --format json 2>/dev/null | grep -q "running" 2>/dev/null; then
+    if is_service_running; then
         echo -e "${GREEN}Running${NC}"
     else
         echo -e "${RED}Stopped${NC}"
@@ -30,22 +16,19 @@ get_status() {
 }
 
 get_players() {
-    if [ -f "$DATA_DIR/world-data/CoreKeeper.log" ]; then
-        PLAYERS=$(grep -c "Player.*joined\|Player.*connected" "$DATA_DIR/world-data/CoreKeeper.log" 2>/dev/null || echo "0")
-        echo "$PLAYERS/8"
-    else
-        echo "-"
-    fi
+    get_connected_players
 }
 
 get_last_backup() {
-    if [ -d "$BACKUPS_DIR" ] && [ "$(ls -A "$BACKUPS_DIR" 2>/dev/null)" ]; then
-        LATEST=$(ls -t "$BACKUPS_DIR"/*.tar.gz 2>/dev/null | head -1)
-        if [ -n "$LATEST" ]; then
-            DATE=$(stat -c %y "$LATEST" 2>/dev/null | cut -d' ' -f1 || stat -f %Sm -t %Y-%m-%d "$LATEST" 2>/dev/null)
-            echo "$DATE"
+    local latest date
+
+    latest="$(latest_backup_file)"
+    if [ -n "$latest" ]; then
+        date="$(file_date "$latest")"
+        if [ -n "$date" ]; then
+            echo "$date"
         else
-            echo "None"
+            echo "Unknown"
         fi
     else
         echo "None"
@@ -53,7 +36,7 @@ get_last_backup() {
 }
 
 show_status() {
-    print_header
+    print_header "Core Keeper Server Manager"
     echo ""
     echo -e "Status:       $(get_status)"
     echo -e "Players:      $(get_players)"
@@ -74,8 +57,8 @@ show_help() {
     echo "  logs --docker       View container logs"
     echo "  logs --lines N      Custom line count"
     echo "  backup              Create full backup"
-    echo "  backup --auto       Backup without prompt"
-    echo "  restore             Restore from latest backup"
+    echo "  backup --auto       Create full backup (automation-friendly alias)"
+    echo "  restore             Choose and restore a backup interactively"
     echo "  restore <file>      Restore from specific backup"
     echo "  status              Show server status"
     echo "  help                Show this help message"
@@ -98,7 +81,7 @@ show_menu() {
     echo ""
     read -p "Select an option: " choice
     echo ""
-    
+
     case $choice in
         1) "$SCRIPTS_DIR/start.sh" ;;
         2) "$SCRIPTS_DIR/stop.sh" ;;
@@ -115,27 +98,21 @@ show_menu() {
 }
 
 ensure_env() {
-    if [ ! -f "$ENV_FILE" ]; then
-        if [ -f "$SCRIPT_DIR/.env.example" ]; then
-            cp "$SCRIPT_DIR/.env.example" "$ENV_FILE"
-            echo -e "${YELLOW}Created .env file from template. Edit it before starting.${NC}"
-        fi
+    if [ ! -f "$ENV_FILE" ] && [ -f "$SCRIPT_DIR/.env.example" ]; then
+        cp "$SCRIPT_DIR/.env.example" "$ENV_FILE"
+        print_warning "Created .env file from template. Review it before starting the server."
     fi
 }
 
-ensure_dirs() {
-    mkdir -p "$DATA_DIR/server-files" "$DATA_DIR/world-data" "$BACKUPS_DIR" "$SCRIPT_DIR/logs"
-}
-
 main() {
-    ensure_dirs
+    ensure_project_dirs
     ensure_env
-    
+
     if [ $# -eq 0 ]; then
         show_menu
         return
     fi
-    
+
     case "$1" in
         start)
             "$SCRIPTS_DIR/start.sh"
@@ -155,11 +132,7 @@ main() {
             "$SCRIPTS_DIR/logs.sh" "$@"
             ;;
         backup)
-            if [ "${2:-}" = "--auto" ]; then
-                BACKUP=true "$SCRIPTS_DIR/backup.sh"
-            else
-                "$SCRIPTS_DIR/backup.sh"
-            fi
+            "$SCRIPTS_DIR/backup.sh"
             ;;
         restore)
             "$SCRIPTS_DIR/restore.sh" "${2:-}"
