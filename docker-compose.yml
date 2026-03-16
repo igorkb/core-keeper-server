@@ -1,7 +1,7 @@
 services:
   core-keeper:
     image: escaping/core-keeper-dedicated:v2.8.1
-    container_name: core-keeper-dedicated
+    container_name: ikb-core-keeper-server
     restart: unless-stopped
     stop_grace_period: 2m
     volumes:
@@ -25,4 +25,4 @@ services:
 
 networks:
   default:
-    name: core-keeper-network
+    name: ikb-core-keeper-network
