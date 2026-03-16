@@ -106,6 +106,22 @@ get_server_port() {
     get_trimmed_env_value SERVER_PORT
 }
 
+get_configured_game_id() {
+    get_trimmed_env_value GAME_ID
+}
+
+get_container_id() {
+    run_compose ps -q "$SERVICE_NAME" 2>/dev/null | head -1
+}
+
+get_container_start_epoch() {
+    local container_id started_at
+    container_id="$(get_container_id)" || return 1
+    [ -n "$container_id" ] || return 1
+    started_at="$(docker inspect --format '{{.State.StartedAt}}' "$container_id" 2>/dev/null)" || return 1
+    date -d "$started_at" +%s 2>/dev/null
+}
+
 get_connection_mode_summary() {
     local server_port
 

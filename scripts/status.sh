@@ -19,11 +19,40 @@ else
     echo -e "Container:     ${RED}Stopped${NC}"
 fi
 
-if [ -f "$SERVER_FILES_DIR/GameID.txt" ]; then
-    GAME_ID=$(cat "$SERVER_FILES_DIR/GameID.txt" 2>/dev/null || echo "N/A")
-    echo -e "Game ID:       $GAME_ID"
+if [ "$CONTAINER_STATUS" = "running" ]; then
+    GAME_ID_FILE="$SERVER_FILES_DIR/GameID.txt"
+    GAME_ID_READY=false
+
+    if [ -f "$GAME_ID_FILE" ]; then
+        CONTAINER_START_EPOCH="$(get_container_start_epoch 2>/dev/null || true)"
+        GAME_ID_FILE_EPOCH="$(file_mtime_epoch "$GAME_ID_FILE")"
+
+        if [ -n "$CONTAINER_START_EPOCH" ] && [ -n "$GAME_ID_FILE_EPOCH" ] && \
+           [ "$GAME_ID_FILE_EPOCH" -gt "$CONTAINER_START_EPOCH" ]; then
+            GAME_ID_READY=true
+        fi
+    fi
+
+    if [ "$GAME_ID_READY" = true ]; then
+        ACTIVE_ID="$(cat "$GAME_ID_FILE" 2>/dev/null || true)"
+        CONFIGURED_ID="$(get_configured_game_id)"
+
+        if [ -z "$CONFIGURED_ID" ] || [ "$ACTIVE_ID" = "$CONFIGURED_ID" ]; then
+            echo -e "Game ID:       $ACTIVE_ID"
+        else
+            echo -e "Game ID:       ${YELLOW}${ACTIVE_ID}${NC}"
+            echo -e "               ${YELLOW}⚠ Expected '${CONFIGURED_ID}' — server rejected it and generated a random ID${NC}"
+        fi
+    else
+        echo -e "Game ID:       ${YELLOW}Waiting for Game ID...${NC}"
+    fi
 else
-    echo -e "Game ID:       ${YELLOW}Not generated yet${NC}"
+    if [ -f "$SERVER_FILES_DIR/GameID.txt" ]; then
+        GAME_ID=$(cat "$SERVER_FILES_DIR/GameID.txt" 2>/dev/null || true)
+        echo -e "Game ID:       ${GAME_ID} ${YELLOW}(last run)${NC}"
+    else
+        echo -e "Game ID:       ${YELLOW}N/A${NC}"
+    fi
 fi
 
 if [ -d "$WORLD_DATA_DIR" ]; then
@@ -52,9 +81,13 @@ fi
 echo ""
 
 if [ "$CONTAINER_STATUS" = "running" ]; then
-    echo -e "${GREEN}Server is running and ready for connections!${NC}"
-    echo ""
-    echo "Connection: $(get_connection_mode_summary)"
+    if [ "$GAME_ID_READY" = true ]; then
+        echo -e "${GREEN}Server is running and ready for connections!${NC}"
+        echo ""
+        echo "Connection: $(get_connection_mode_summary)"
+    else
+        echo -e "${YELLOW}Server is starting up, waiting for Game ID...${NC}"
+    fi
 else
     echo -e "${YELLOW}Server is not running.${NC}"
     echo "Start with: ./server.sh start"
