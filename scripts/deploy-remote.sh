@@ -11,7 +11,7 @@ if [ -f "$CONFIG_FILE" ]; then
 fi
 
 REMOTE_HOST="${REMOTE_HOST:-}"
-REMOTE_USER="${REMOTE_USER:-root}"
+REMOTE_USER="${REMOTE_USER:-root}" # WARNING: deploying as root is a convenience default; use a dedicated non-root user in production
 REMOTE_PATH="${REMOTE_PATH:-}"
 KEY_FILE="${KEY_FILE:-}"
 SERVICE_NAME="core-keeper"
