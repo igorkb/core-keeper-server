@@ -2,7 +2,7 @@
 
 set -Eeuo pipefail
 
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+SCRIPT_DIR="$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")"
 CONFIG_FILE="$SCRIPT_DIR/.deploy.conf"
 source "$SCRIPT_DIR/lib/common.sh"
 
@@ -141,7 +141,7 @@ verify_remote_stack() {
     remote_path_quoted="$(remote_shell_quote "$REMOTE_PATH")"
 
     print_warning "Verifying remote deployment..."
-    run_remote "set -e; cd $remote_path_quoted; docker compose --env-file .compose.env ps --status running --services | grep -Fxq $SERVICE_NAME; if [ -s data/server-files/GameID.txt ]; then echo 'GameID:'; cat data/server-files/GameID.txt; else echo 'GameID not generated yet; check logs with ./server.sh logs --docker'; fi"
+    run_remote "set -e; cd $remote_path_quoted; docker compose --env-file .compose.env ps --status running --services | grep -Fxq $SERVICE_NAME; if [ -s data/server-files/GameID.txt ]; then echo 'GameID:'; cat data/server-files/GameID.txt; else echo 'GameID not generated yet; check logs with ./ckserver.sh logs --docker'; fi"
 }
 
 while [[ $# -gt 0 ]]; do

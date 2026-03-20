@@ -2,7 +2,7 @@
 
 set -euo pipefail
 
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+SCRIPT_DIR="$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")"
 source "$SCRIPT_DIR/lib/common.sh"
 
 print_header "Core Keeper Server Status"
@@ -90,5 +90,5 @@ if [ "$CONTAINER_STATUS" = "running" ]; then
     fi
 else
     echo -e "${YELLOW}Server is not running.${NC}"
-    echo "Start with: ./server.sh start"
+    echo "Start with: ./ckserver.sh start"
 fi

@@ -2,7 +2,7 @@
 
 set -euo pipefail
 
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+SCRIPT_DIR="$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")"
 source "$SCRIPT_DIR/lib/common.sh"
 
 LINES=50
@@ -10,7 +10,7 @@ FOLLOW=false
 DOCKER_LOGS=false
 
 print_usage() {
-    echo "Usage: ./server.sh logs [--docker] [-f|--follow] [--lines N|N]"
+    echo "Usage: ./ckserver.sh logs [--docker] [-f|--follow] [--lines N|N]"
 }
 
 require_positive_integer() {
@@ -69,6 +69,6 @@ else
         fi
     else
         echo "Game logs directory not found: $GAME_LOG_DIR"
-        echo "Server may not have started yet. Try: ./server.sh logs --docker"
+        echo "Server may not have started yet. Try: ./ckserver.sh logs --docker"
     fi
 fi

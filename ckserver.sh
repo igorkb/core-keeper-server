@@ -2,7 +2,7 @@
 
 set -euo pipefail
 
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+SCRIPT_DIR="$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")"
 ENV_FILE="$SCRIPT_DIR/.env"
 
 source "$SCRIPT_DIR/scripts/lib/common.sh"
@@ -45,7 +45,7 @@ show_status() {
 }
 
 show_help() {
-    echo "Usage: ./server.sh [command] [options]"
+    echo "Usage: ./ckserver.sh [command] [options]"
     echo ""
     echo "Commands:"
     echo "  start               Start the server"

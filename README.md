@@ -11,10 +11,10 @@ Although quite capable, this project is meant to be used for personal purposes a
 Clone the repo, then run:
 
 ```sh
-./server.sh
+./ckserver.sh
 ```
 
-Select **Start Server** from the menu (or run `./server.sh start` directly). No configuration is required to get going.
+Select **Start Server** from the menu (or run `./ckserver.sh start` directly). No configuration is required to get going.
 
 > Without a `.env` file the server starts with defaults: a new world is created at slot `0` with a random seed, standard difficulty, and a randomly generated Game ID.
 
@@ -30,7 +30,7 @@ If you want to load an existing world, copy the relevant files into `data/world-
 - `docker-compose.direct-connect.yml` — automatic UDP port publishing override for direct-connect mode
 - `.env.example` — documented runtime configuration template
 - `.compose.env` — Compose interpolation helper used by the scripts
-- `server.sh` — top-level entrypoint for common operations
+- `ckserver.sh` — top-level entrypoint for common operations
 - `scripts/` — operational subcommands
 - `data/server-files/` — installed server files, logs, `GameID.txt`
 - `data/world-data/` — persistent save/config data
@@ -47,18 +47,18 @@ If you want to load an existing world, copy the relevant files into `data/world-
 
 Run everything from the project root:
 
-- `./server.sh start`
-- `./server.sh stop`
-- `./server.sh stop --no-backup`
-- `./server.sh restart`
-- `./server.sh status`
-- `./server.sh logs`
-- `./server.sh logs -f`
-- `./server.sh logs --docker`
-- `./server.sh backup`
-- `./server.sh restore`
+- `./ckserver.sh start`
+- `./ckserver.sh stop`
+- `./ckserver.sh stop --no-backup`
+- `./ckserver.sh restart`
+- `./ckserver.sh status`
+- `./ckserver.sh logs`
+- `./ckserver.sh logs -f`
+- `./ckserver.sh logs --docker`
+- `./ckserver.sh backup`
+- `./ckserver.sh restore`
 
-Without arguments, `./server.sh` opens the interactive menu.
+Without arguments, `./ckserver.sh` opens the interactive menu.
 
 ## Configuration
 
@@ -74,7 +74,7 @@ To enable direct-connect mode:
 
 1. Set `SERVER_PORT` in `.env`
 2. Open/forward the matching UDP port on your host/network
-3. Start the server normally with `./server.sh start`
+3. Start the server normally with `./ckserver.sh start`
 
 The helper scripts automatically add `docker-compose.direct-connect.yml` when `SERVER_PORT` is set, so UDP publishing happens without editing the base Compose file.
 
@@ -126,14 +126,14 @@ WORLD_INDEX=0
 Then start the server normally:
 
 ```
-./server.sh start
+./ckserver.sh start
 ```
 
 > **Note:** Use slots `1`–`9` to host additional worlds without overwriting the one in slot `0`.
 
 ## Backups
 
-`./server.sh backup` creates a compressed backup of `data/world-data/` and writes:
+`./ckserver.sh backup` creates a compressed backup of `data/world-data/` and writes:
 
 - `backups/core-keeper_backup_<timestamp>.tar.gz`
 - `backups/core-keeper_backup_<timestamp>.tar.gz.sha256`
@@ -147,7 +147,7 @@ Behavior:
 
 ## Restore workflow
 
-`./server.sh restore` validates the archive before replacing live data.
+`./ckserver.sh restore` validates the archive before replacing live data.
 
 Current restore behavior:
 
